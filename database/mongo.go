@@ -2,38 +2,31 @@ package db
 
 import (
 	"log"
+	"one-crawler-go/config"
 	"time"
 
 	"gopkg.in/mgo.v2"
 )
 
-const (
-	mongoDBHosts = "127.0.0.1:27017"
-	authDatabase = "test"
-	authUserName = "test"
-	authPassword = "123456"
-	maxCon       = 300
-)
-
 // GlobalDatabase 全局 session
-var GlobalDatabase = getGlobalSession()
+var GlobalDatabase *mgo.Session
 
-func getGlobalSession() *mgo.Session {
+// Init 初始化 mongo
+func Init(conf *config.MongoConf) {
 	mongoDBDialInfo := &mgo.DialInfo{
-		Addrs:    []string{mongoDBHosts},
+		Addrs:    []string{conf.Hosts},
 		Timeout:  60 * time.Second,
-		Database: authDatabase,
+		Database: conf.DB,
 		// Username: AuthUserName,
 		// Password: AuthPassword,
 	}
 
-	GlobalDatabase, err := mgo.DialWithInfo(mongoDBDialInfo)
+	var err error
+	GlobalDatabase, err = mgo.DialWithInfo(mongoDBDialInfo)
 	if err != nil {
 		log.Fatalf("CreateSession failed:%\n", err)
 	}
 
 	//设置连接池的大小
-	GlobalDatabase.SetPoolLimit(maxCon)
-
-	return GlobalDatabase
+	GlobalDatabase.SetPoolLimit(conf.MaxCon)
 }

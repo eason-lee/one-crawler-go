@@ -2,23 +2,22 @@ package crawler
 
 import (
 	"fmt"
-	// "log"
 	db "one-crawler-go/database"
+	"one-crawler-go/config"
 	"one-crawler-go/models"
+	"strconv"
 
 	"github.com/gocolly/colly/v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
-// GetCollector 获取 Collector
-func GetCollector() *colly.Collector {
+// getCollector 获取 Collector
+func getCollector(async bool) *colly.Collector {
 	c := colly.NewCollector(
-	// Visit only domains: hackerspaces.org, wiki.hackerspaces.org
-	// colly.AllowedDomains("http://wufazhuce.com"),
-	// 开启异步
-	// colly.Async(true),
-	)
 
+	// 开启异步
+	colly.Async(async),
+	)
 
 	// On every a element which has href attribute call callback
 	// one 图片
@@ -53,12 +52,11 @@ func GetCollector() *colly.Collector {
 		data = append(data, *one)
 
 		fmt.Printf("one data %#v \n", data)
-		err :=  models.CreateData(db.GlobalDatabase, "test", "one", one)
-		if err != nil{
+		err := models.CreateData(db.GlobalDatabase, "test", "one", one)
+		if err != nil {
 			panic(err)
 		}
 	})
-
 
 	// Before making a request print "Visiting ..."
 	c.OnRequest(func(r *colly.Request) {
@@ -67,4 +65,16 @@ func GetCollector() *colly.Collector {
 
 	return c
 
+}
+
+// Run 开启爬虫
+func Run(conf *config.CrawlerConf) {
+	collector := getCollector(conf.Async)
+	// Start scraping on url
+	for i := conf.StartIndex; i <= conf.EndIndex; i++ {
+		collector.Visit("http://wufazhuce.com/one/" + strconv.Itoa(i))
+	}
+	if conf.Async{
+		collector.Wait()
+	}
 }

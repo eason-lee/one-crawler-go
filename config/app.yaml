@@ -1,0 +1,10 @@
+crawler:
+  aysnc: false
+  start_index: 14
+  end_index: 30
+mongo:
+  hosts: 127.0.0.1:27017
+  db: test
+  username: test
+  password: !!str 123456
+  max_conntect: 300
